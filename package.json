@@ -1,6 +1,6 @@
 {
   "name": "mongo-backup-manager",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "",
   "main": "index.js",
   "scripts": {
@@ -18,7 +18,7 @@
     "ftp": "^0.3.10",
     "minimist": "^1.2.0",
     "q": "^1.5.1",
-    "sicro": "^1.0.3",
+    "sicro": "^1.0.4",
     "targz": "^1.0.1"
   }
 }

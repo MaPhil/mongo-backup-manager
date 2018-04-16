@@ -12,7 +12,7 @@ generel option :
 \t-h --help
 
 functions:
-\tdupm list remote:
+\tdump list remote:
 \t\t[--list remote] [--db] <dbname> [--host] <host> [--port] <port> [--user] <user> [--password] <password>
 \tdump list local 
 \t\t[--list local] [--db] <dbname>
