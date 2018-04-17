@@ -1,7 +1,35 @@
 #!/usr/bin/env node
 
 const pjson = require('./package.json');
-const argv = require('minimist')(process.argv.slice(2));
+const minimist = require('minimist');
+
+
+const argv = minimist(process.argv.slice(2), {
+	alias: {
+		'list': 'l',
+		'db': 'd',
+		'host': 'hst',
+		'port': 'prt',
+		'user': 'usr',
+		'password': 'pwd',
+		'schedule': 'schdl',
+		'restore': 'rstr',
+		'specific': 'spcfc',
+		'dbs': 'ds',
+		'all': 'a',
+		'remove': 'rm',
+		'status': 'stts',
+		'dump': 'dmp',
+		'help':'h',
+		'version':'v'
+
+	},
+	unknown: (arg) => {
+		console.error('Unknown option: ', arg)
+		return false;
+	}
+});
+
 
 const MongoManager = require('./mongodb/mongodb.js');
 

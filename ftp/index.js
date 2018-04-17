@@ -21,7 +21,10 @@ class FtpClient {
 		let dirWithDumpFile = dumpDir || '';
 		client.on('ready', () => {
 			client.list(`./${dirWithDumpFile}`, (err, result) => {
-				if (err) throw err;
+				if (err) {
+					Utils.logErr(err);
+					throw err
+				};
 				let dumps = null;
 				if (result) {
 					dumps = result.map(item => item.name);
@@ -29,6 +32,9 @@ class FtpClient {
 				console.log(dumps);
 				client.end();
 			});
+		});
+		client.on('error', (err) => {
+			Utils.logErr(err);
 		});
 		client.connect(this.connectParams);
 	}
@@ -40,7 +46,10 @@ class FtpClient {
 			let dirWithDumpFile = dumpDir || '';
 			client.on('ready', () => {
 				client.list(`./${dirWithDumpFile}`, (err, result) => {
-					if (err) throw err;
+					if (err) {
+						Utils.logErr(err);
+						throw err;
+					}
 					let dumps = null;
 					if (result) {
 						dumps = result.map(item => item.name);
@@ -52,6 +61,7 @@ class FtpClient {
 				});
 			});
 			client.on('error', (err) => {
+				Utils.logErr(err);
 				rej(err);
 			});
 			client.connect(this.connectParams);
@@ -61,6 +71,7 @@ class FtpClient {
 
 
 	putToRemote(dbDirPath, dbTimeName, dbName) {
+
 		let dumpGz = `${dbDirPath}.tar.gz`;
 		let dumpName = `${dbTimeName}.tar.gz`;
 		let connectParams = this.connectParams;
@@ -70,6 +81,7 @@ class FtpClient {
 			dest: dumpGz
 		}, function (err) {
 			if (err) {
+				Utils.logErr(err);
 				console.log(err);
 			} else {
 				putFilesFtp(connectParams, dumpGz, dumpName, dbName);
@@ -84,7 +96,9 @@ class FtpClient {
 			let client = new Client();
 			client.on('ready', () => {
 				client.list((err, result) => {
-					if (err) rej(err);
+					if (err) {
+						rej(err);
+					}
 					let dumps = null;
 					if (result) {
 						dumps = result.map(item => item.name);
@@ -93,6 +107,9 @@ class FtpClient {
 
 					client.end();
 				});
+			});
+			client.on('error', (err) => {
+				Utils.logErr(err);
 			});
 			client.connect(this.connectParams);
 		});
@@ -110,6 +127,7 @@ class FtpClient {
 				client.on('ready', () => {
 					client.get(dbArhive, (err, stream) => {
 						if (err) {
+							console.log('')
 							reject(err);
 						}
 
@@ -119,6 +137,10 @@ class FtpClient {
 
 						stream.pipe(fs.createWriteStream(pathToRestoreFolder));
 					});
+				});
+
+				client.on('error', (err) => {
+					Utils.logErr(err);
 				});
 
 				client.on('close', () => {
@@ -179,6 +201,11 @@ function putFilesFtp(connectParams, dbDirPath, dumpName, dirName) {
 
 	});
 	client.on('close', () => {
+		Utils.removeFile(dbDirPath);
+		Utils.removeDir(path.resolve(__dirname, `../temp/${dirName}`));
+	});
+	client.on('error', (err) => {
+		Utils.logErr(err);
 		Utils.removeFile(dbDirPath);
 		Utils.removeDir(path.resolve(__dirname, `../temp/${dirName}`));
 	});

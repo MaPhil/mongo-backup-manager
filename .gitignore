@@ -1,1 +1,8 @@
 .DS_Store
+node_modules
+log_err.txt
+log_out.txt
+dump
+err.log
+info.log
+temp
