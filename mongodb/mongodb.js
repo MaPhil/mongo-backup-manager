@@ -50,7 +50,7 @@ class MongoManager {
 				if (NODE_ENV && NODE_ENV === 'development') {
 					sicroDescription = `${schedule} node ${pathToMain} --dump remote --db ${db} --host ${host} --port ${port} --user ${user} --password ${password}`;
 				} else {
-					sicroDescription = `${schedule} mongo-backup-manager --dump remote --db ${db} --host ${host} --port ${port} --user ${user} --password ${password}`;
+					sicroDescription = `${schedule} /usr/local/bin/node ${pathToMain} --dump remote --db ${db} --host ${host} --port ${port} --user ${user} --password ${password}`;
 				}
 				addSicro(db, sicroDescription);
 			}

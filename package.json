@@ -1,6 +1,6 @@
 {
   "name": "mongo-backup-manager",
-  "version": "1.0.3",
+  "version": "1.0.4",
   "description": "",
   "main": "index.js",
   "scripts": {
@@ -23,6 +23,8 @@
   },
   "preferGlobal": true,
   "author": "Philipp Mainz and gray.grifon",
+  
+  "homepage": "https://github.com/MaPhil/mongo-backup-manager#readme",
   "license": "MIT",
   "dependencies": {
     "cli-table": "^0.3.1",
