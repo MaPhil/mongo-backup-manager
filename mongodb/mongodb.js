@@ -102,7 +102,7 @@ class MongoManager {
 				if (NODE_ENV && NODE_ENV === 'development') {
 					sicroDescription = `${schedule} node ${pathToMain} --dump local --db ${db}`;
 				} else {
-					sicroDescription = `${schedule} mongo-backup-manager  --dump local --db ${db}`;
+					sicroDescription = `${schedule} /usr/local/bin/node  --dump local --db ${db}`;
 				}
 
 
