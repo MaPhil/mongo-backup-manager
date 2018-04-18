@@ -1,7 +1,7 @@
 {
   "name": "mongo-backup-manager",
   "version": "1.0.5",
-  "description": "",
+  "description": "with this package you can create a dump of you mongodb to a local place or to a remote ftp space",
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
@@ -23,7 +23,6 @@
   },
   "preferGlobal": true,
   "author": "Philipp Mainz and gray.grifon",
-  
   "homepage": "https://github.com/MaPhil/mongo-backup-manager#readme",
   "license": "MIT",
   "dependencies": {
