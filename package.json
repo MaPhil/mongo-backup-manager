@@ -9,9 +9,21 @@
   "bin": {
     "mongo-backup-manager": "./index.js"
   },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/MaPhil/mongo-backup-manager.git"
+  },
+  "keywords": [
+    "mongodb",
+    "backup",
+    "ftp-backup"
+  ],
+  "bugs": {
+    "url": "https://github.com/MaPhil/mongo-backup-manager/issues"
+  },
   "preferGlobal": true,
-  "author": "gray.grifon",
-  "license": "ISC",
+  "author": "Philipp Mainz and gray.grifon",
+  "license": "MIT",
   "dependencies": {
     "cli-table": "^0.3.1",
     "del": "^3.0.0",
