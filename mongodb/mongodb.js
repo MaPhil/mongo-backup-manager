@@ -8,30 +8,43 @@ const Utils = require('../utils');
 const Ftp = require('../ftp/index.js');
 
 
-const NODE_ENV = process.env.NODE_ENV = 'development';
-// const NODE_ENV = process.env.NODE_ENV = 'production';
+// const NODE_ENV = process.env.NODE_ENV = 'development';
+const NODE_ENV = process.env.NODE_ENV = 'production';
 
 class MongoManager {
 	constructor() { }
 
 	dumpToRemote(paramsObj) {
 		let { db, host, port, user, password, schedule } = paramsObj;
+		if(schedule) {
+			if(!Utils.checkSchedule(schedule)){
+				console.log('Bad param to sicro, for more info visit http://www.nncron.ru/help/EN/working/cron-format.htm');
+				return;
+			}
+		}
 		let dbWithTimeDump = db + Utils.formDate();
 		let pathToTemp = path.resolve(__dirname, `../temp/${db}`);
 
-		console.log(pathToTemp);
 		Utils.createDir(pathToTemp).then(() => {
 			exec(`mongodump --db ${db} --out ${pathToTemp}`, (err, stdout, stderr) => {
-				if (err) throw err;
-	
+				if (err) {
+					Utils.logErr(err);
+					throw err;
+				}
+				Utils.logOut(stdout);
+				Utils.logOut(stderr);
+
+
 				let ftp = new Ftp(paramsObj);
 				let dupmPath = `${pathToTemp}`;
 				Utils.createDir(dupmPath).then(() => {
 					ftp.putToRemote(dupmPath, dbWithTimeDump, db);
-				}).catch(err => console.log(err));
+				}).catch(err => {
+					Utils.logErr(err);
+				});
 			});
 			if (schedule) {
-	
+
 				let pathToMain = path.resolve(__dirname, '../index.js');
 				let sicroDescription = '';
 				if (NODE_ENV && NODE_ENV === 'development') {
@@ -41,7 +54,7 @@ class MongoManager {
 				}
 				addSicro(db, sicroDescription);
 			}
-		}).catch(err => console.log(err));
+		}).catch(err => Utils.logErr(err));
 	}
 
 	getRemoteListWithDump(paramsObj) {
@@ -66,21 +79,26 @@ class MongoManager {
 
 	dumpToLocal(paramsObj) {
 		let { db, schedule } = paramsObj;
+		if(schedule) {
+			if(!Utils.checkSchedule(schedule)){
+				console.log('Bad param to sicro, for more info visit http://www.nncron.ru/help/EN/working/cron-format.htm');
+				return;
+			}
+		}
 		let dumpTimeDir = db + Utils.formDate(db);
 		let dumpDir = path.resolve(__dirname, `../dump/${db}/${dumpTimeDir}`);
 		Utils.createDir(dumpDir).then((dumpDir) => {
 			exec(`mongodump --db ${db} --out ${dumpDir}`, (err, stdout, stderr) => {
 				if (err) throw err;
 
-				console.log('Ok');
-
+				Utils.logOut(stdout);
+				Utils.logErr(stderr);
 			});
 
 			if (schedule) {
 
 				let pathToMain = path.resolve(__dirname, '../index.js');
 				let sicroDescription = '';
-				console.log(db);
 				if (NODE_ENV && NODE_ENV === 'development') {
 					sicroDescription = `${schedule} node ${pathToMain} --dump local --db ${db}`;
 				} else {
@@ -91,7 +109,7 @@ class MongoManager {
 				addSicro(db, sicroDescription);
 			}
 		}).catch((err) => {
-			console.log(err);
+			Utils.logErr(err);
 		});
 
 	}
@@ -101,13 +119,12 @@ class MongoManager {
 		let ftp = new Ftp(paramsObj);
 		ftp.getLastDumpRemote(db).then((result) => {
 			ftp.getFromRemote(db, result).then((path) => {
-				console.log('before restore ',path);
 				restoreDb(db, path);
 			}).catch((err) => {
-				console.log(err);
+				Utils.logErr(err);
 			});
 		}).catch((err) => {
-			console.log(err);
+			Utils.logErr(err);
 		});
 
 	}
@@ -117,7 +134,7 @@ class MongoManager {
 		let { db, specific } = paramsObj;
 		ftp.getFromRemote(db, specific).then((path) => {
 			restoreDb(db, path);
-		}).catch(err => console.log(err));
+		}).catch(err => Utils.logErr(err));
 	}
 
 	restoreAllFromRemote(paramsObj) {
@@ -129,13 +146,13 @@ class MongoManager {
 						ftp.getFromRemote(item, result).then((path) => {
 							restoreDb(item, path);
 						}).catch((err) => {
-							console.log(err);
+							Utils.logErr(err);
 						});
 					});
 				});
 			}
 		}).catch((err) => {
-			console.log(err);
+			Utils.logErr(err);
 		});
 	}
 
@@ -147,9 +164,9 @@ class MongoManager {
 		Utils.dirList(pathToDir).then((result) => {
 			let pathToLastFile = Utils.lastedFile(result);
 			let pathToDump = path.resolve(__dirname, `../dump/${db}/${pathToLastFile}/${db}`);
-			console.log('path to dump ',pathToDump);
+			console.log('path to dump ', pathToDump);
 			restoreDb(db, pathToDump);
-		}).catch(err => console.log(err));
+		}).catch(err => Utils.logErr(err));
 
 	}
 
@@ -185,7 +202,7 @@ class MongoManager {
 			});
 	}
 
-	
+
 
 	status() {
 		sicro.status();
@@ -199,7 +216,7 @@ function addSicro(task, description) {
 			sicro.status();
 		})
 		.catch((e) => {
-			console.log(e);
+			Utils.logErr(err);
 		});
 }
 
@@ -207,11 +224,17 @@ function addSicro(task, description) {
 
 function restoreDb(dbName, pathToDb) {
 	exec(`mongorestore --db ${dbName} --drop ${pathToDb}`, (err, stdout, stderr) => {
-		if (err) throw err;
+		if (err) {
+			Utils.logErr(err);
+			throw err
+		};
+		Utils.logErr(stderr);
+		Utils.logOut(stdout);
 		let pathToDir = path.resolve(__dirname, `../restore/${dbName}`);
-		Utils.removeDir(pathToDir);	
+		Utils.removeDir(pathToDir);
 	});
 }
+
 
 
 
