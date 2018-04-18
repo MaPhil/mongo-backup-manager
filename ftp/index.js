@@ -17,6 +17,7 @@ class FtpClient {
 	}
 
 	getDumpList(dumpDir) {
+	
 		let client = new Client();
 		let dirWithDumpFile = dumpDir || '';
 		client.on('ready', () => {
@@ -71,27 +72,35 @@ class FtpClient {
 
 
 	putToRemote(dbDirPath, dbTimeName, dbName) {
+	
+		return new Promise((res, rej) => {
+			let dumpGz = `${dbDirPath}.tar.gz`;
+			let dumpName = `${dbTimeName}.tar.gz`;
+			let connectParams = this.connectParams;
 
-		let dumpGz = `${dbDirPath}.tar.gz`;
-		let dumpName = `${dbTimeName}.tar.gz`;
-		let connectParams = this.connectParams;
-
-		targz.compress({
-			src: dbDirPath,
-			dest: dumpGz
-		}, function (err) {
-			if (err) {
-				Utils.logErr(err);
-				console.log(err);
-			} else {
-				putFilesFtp(connectParams, dumpGz, dumpName, dbName);
-			}
+			targz.compress({
+				src: dbDirPath,
+				dest: dumpGz
+			}, function (err) {
+				if (err) {
+					Utils.logErr(err);
+					console.log(err);
+				} else {
+					putFilesFtp(connectParams, dumpGz, dumpName, dbName).then(() => {
+						res();
+					}).catch((err) => {
+						rej(err);
+					});
+				}
+			});
 		});
+
 	}
 
 
 
 	returnAllDumpsRemote() {
+	
 		return new Promise((res, rej) => {
 			let client = new Client();
 			client.on('ready', () => {
@@ -116,8 +125,9 @@ class FtpClient {
 	}
 
 	getFromRemote(db, dumpfile) {
-		console.log('get from remote', db);
+
 		return new Promise((resolve, reject) => {
+			console.log('get from remote', db);
 			let client = new Client();
 			let dbArhive = `${db}/${dumpfile}`;
 			let pathToRestoreFolder = path.resolve(__dirname, `../restore/${dbArhive}`);
@@ -127,7 +137,7 @@ class FtpClient {
 				client.on('ready', () => {
 					client.get(dbArhive, (err, stream) => {
 						if (err) {
-							console.log('')
+							console.log(err);
 							reject(err);
 						}
 
@@ -176,47 +186,44 @@ function unpackRestore(db, pathToRestorArhive, pathToRestoredFile, resolve, reje
 
 function putFilesFtp(connectParams, dbDirPath, dumpName, dirName) {
 
-	let client = new Client();
-	client.on('ready', () => {
-		client.list((err, result) => {
-			if (err) throw err;
-			let ifDirExist = result.some(item => item.name === dirName);
-			if (ifDirExist) {
-				client.put(dbDirPath, `${dirName}/${dumpName}`, (err) => {
-					if (err) throw err;
-					client.end();
-					console.log('ok');
-				});
-			} else {
-				client.mkdir(dirName, (err) => {
-					if (err) throw err;
+	return new Promise((res, rej) => {
+		let client = new Client();
+		client.on('ready', () => {
+			client.list((err, result) => {
+				if (err) throw err;
+				let ifDirExist = result.some(item => item.name === dirName);
+				if (ifDirExist) {
 					client.put(dbDirPath, `${dirName}/${dumpName}`, (err) => {
 						if (err) throw err;
-						console.log('ok');
 						client.end();
+						console.log('ok');
 					});
-				});
-			}
+				} else {
+					client.mkdir(dirName, (err) => {
+						if (err) throw err;
+						client.put(dbDirPath, `${dirName}/${dumpName}`, (err) => {
+							if (err) throw err;
+							console.log('ok');
+							client.end();
+						});
+					});
+				}
+			});
+
 		});
-
+		client.on('close', () => {
+			Utils.removeFile(dbDirPath);
+			Utils.removeDir(path.resolve(__dirname, `../temp/${dirName}`));
+			res();
+		});
+		client.on('error', (err) => {
+			Utils.logErr(err);
+			Utils.removeFile(dbDirPath);
+			Utils.removeDir(path.resolve(__dirname, `../temp/${dirName}`));
+			rej(err);
+		});
+		client.connect(connectParams);
 	});
-	client.on('close', () => {
-		Utils.removeFile(dbDirPath);
-		Utils.removeDir(path.resolve(__dirname, `../temp/${dirName}`));
-	});
-	client.on('error', (err) => {
-		Utils.logErr(err);
-		Utils.removeFile(dbDirPath);
-		Utils.removeDir(path.resolve(__dirname, `../temp/${dirName}`));
-	});
-	client.connect(connectParams);
 }
-
-
-
-
-
-
-
 
 module.exports = FtpClient;
