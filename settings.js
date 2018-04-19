@@ -19,6 +19,6 @@ module.exports.mongorestorePath = '${t.mongorestore}';
 `, (err) => {
       defer.resolve();
     });
-  } else defer.resovle();
+  } else defer.resolve();
   return defer.promise;
 }
