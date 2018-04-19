@@ -3,35 +3,36 @@
 const pjson = require('./package.json');
 const minimist = require('minimist');
 
-
 const argv = minimist(process.argv.slice(2), {
-	alias: {
-		'list': 'l',
-		'db': 'd',
-		'host': 'hst',
-		'port': 'prt',
-		'user': 'usr',
-		'password': 'pwd',
-		'schedule': 'schdl',
-		'restore': 'rstr',
-		'specific': 'spcfc',
-		'dbs': 'ds',
-		'all': 'a',
-		'remove': 'rm',
-		'status': 'stts',
-		'dump': 'dmp',
-		'help':'h',
-		'version':'v'
-
-	},
-	unknown: (arg) => {
-		console.error('Unknown option: ', arg)
-		return false;
-	}
+  alias: {
+    'list': 'l',
+    'db': 'd',
+    'host': 'hst',
+    'port': 'prt',
+    'user': 'usr',
+    'password': 'pwd',
+    'schedule': 'schdl',
+    'restore': 'rstr',
+    'specific': 'spcfc',
+    'dbs': 'ds',
+    'all': 'a',
+    'remove': 'rm',
+    'status': 'stts',
+    'dump': 'dmp',
+    'help': 'h',
+    'version': 'v',
+    'init': 'i'
+  },
+  unknown: (arg) => {
+    console.error('Unknown option: ', arg)
+    return false;
+  }
 });
 
 
 const MongoManager = require('./mongodb/mongodb.js');
+
+const settings = require('./settings');
 
 const mongoManeger = new MongoManager();
 const help = `mongo-backup-manager \n
@@ -61,73 +62,86 @@ functions:
 `;
 
 if (argv.v || argv.version) {
-	console.log(pjson.version);
+  console.log(pjson.version);
 }
 
 if (argv.h || argv.help) {
-	console.log(help);
+  console.log(help);
 }
-
+if (argv.i || argv.init) {
+  settings.storePath().then(function () {
+    console.log('stored path');
+  })
+}
 if (argv.list && argv.list === 'remote') {
-	mongoManeger.getRemoteListWithDump(argv);
+
+  mongoManeger.getRemoteListWithDump(argv);
 }
 
 
 if (argv.list && argv.list === 'local') {
-	mongoManeger.getLocalListWithDump(argv);
+  mongoManeger.getLocalListWithDump(argv);
 }
 
 if (argv.dump && argv.dump === 'remote') {
-	mongoManeger.dumpToRemote(argv);
+
+  settings.storePath().then(function () {
+    mongoManeger.dumpToRemote(argv);
+  })
 }
 
 if (argv.dump && argv.dump === 'local') {
-	mongoManeger.dumpToLocal(argv);
+
+  settings.storePath().then(function () {
+    mongoManeger.dumpToLocal(argv);
+  })
 }
 
 if (argv.restore && argv.restore === 'remote') {
-	if (argv.specific && argv.specific !== '') {
-		mongoManeger.restoreSpecificFromRemote(argv);
-	} else if (argv.dbs && argv.dbs === 'all') {
-		console.log('ALL');
-		mongoManeger.restoreAllFromRemote(argv);
-	} else {
-		mongoManeger.restoreDbFromRemote(argv);
-	}
+
+  settings.storePath().then(function () {
+    if (argv.specific && argv.specific !== '') {
+      mongoManeger.restoreSpecificFromRemote(argv);
+    } else if (argv.dbs && argv.dbs === 'all') {
+      console.log('ALL');
+      mongoManeger.restoreAllFromRemote(argv);
+    } else {
+      mongoManeger.restoreDbFromRemote(argv);
+    }
+  })
 }
 
 if (argv.restore && argv.restore === 'local') {
-	if (argv.dbs && argv.dbs === 'all') {
-		mongoManeger.restoreAllFromLocal();
-	} else if (argv.specific && argv.specific !== '') {
-		mongoManeger.restoreSpecificDumpFromLocal(argv);
-	} else {
-		mongoManeger.restoreFromLocal(argv);
-	}
+
+  settings.storePath().then(function () {
+    if (argv.dbs && argv.dbs === 'all') {
+      mongoManeger.restoreAllFromLocal();
+    } else if (argv.specific && argv.specific !== '') {
+      mongoManeger.restoreSpecificDumpFromLocal(argv);
+    } else {
+      mongoManeger.restoreFromLocal(argv);
+    }
+  })
 }
 
 if (argv.add && argv.add !== '') {
-	let dbName = argv.add;
-	let schedule = null;
-	if (argv.schedule && argv.schedule !== '') {
-		schedule = argv.schedule;
-	}
+  let dbName = argv.add;
+  let schedule = null;
+  if (argv.schedule && argv.schedule !== '') {
+    schedule = argv.schedule;
+  }
 
-	mongoManeger.addDb(dbName, schedule);
+  mongoManeger.addDb(dbName, schedule);
 
 }
 
 if (argv.remove && argv.remove !== '') {
-	let dbName = argv.remove;
-	mongoManeger.removeDb(dbName);
+  let dbName = argv.remove;
+  mongoManeger.removeDb(dbName);
 
 }
 
 
 if (argv.status) {
-	mongoManeger.status();
+  mongoManeger.status();
 }
-
-
-
-

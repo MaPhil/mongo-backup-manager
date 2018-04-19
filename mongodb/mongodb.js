@@ -2,7 +2,7 @@ const sicro = require('sicro');
 const exec = require('child_process').exec;
 const path = require('path');
 const Utils = require('../utils');
-const whereis = require('whereissync');
+const pathSetting = require('../path');
 
 
 
@@ -205,8 +205,7 @@ function addSicro(task, description) {
 
 function mongoDump(db, dumpDir) {
 	return new Promise((res, rej) => {
-        let result = whereis('mongodump');
-		exec(`${result.path} --db ${db} --out ${dumpDir}`, (err, stdout, stderr) => {
+		exec(`${pathSetting.mongodumpPath} --db ${db} --out ${dumpDir}`, (err, stdout, stderr) => {
 			if (err) {
 				Utils.logErr(err);
 				rej(err);
@@ -222,8 +221,7 @@ function mongoDump(db, dumpDir) {
 
 
 function restoreDb(dbName, pathToDb) {
-    let result = whereis('mongorestore');
-	exec(`${result.path} --db ${dbName} --drop ${pathToDb}`, (err, stdout, stderr) => {
+	exec(`${pathSetting.mongorestorePath} --db ${dbName} --drop ${pathToDb}`, (err, stdout, stderr) => {
 		if (err) {
 			Utils.logErr(err);
 			throw err
