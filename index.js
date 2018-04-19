@@ -53,7 +53,7 @@ functions:
 \trestore all from remote
 \t\t[--restore remote] [--dbs all] [--host] <host> [--port] <port> [--user] <user> [--password] <password>
 \trestore from local:
-\t\t[--restore local]  [--db] <db> [--all all] [--specific] <dumpName>
+\t\t[--restore local]  [--db] <db> [--dbs all] [--specific] <dumpName>
 \tremove db:
 \t\t[--remove]  <dbname>
 \tstatus:
@@ -97,7 +97,7 @@ if (argv.restore && argv.restore === 'remote') {
 }
 
 if (argv.restore && argv.restore === 'local') {
-	if (argv.all && argv.all === 'all') {
+	if (argv.dbs && argv.dbs === 'all') {
 		mongoManeger.restoreAllFromLocal();
 	} else if (argv.specific && argv.specific !== '') {
 		mongoManeger.restoreSpecificDumpFromLocal(argv);
