@@ -10,7 +10,7 @@ module.exports.storePath = function () {
   };
   
   
-  fs.writeFile('path.js', `
+  fs.writeFile(__dirname+'/path.js', `
 module.exports.first = false;
 module.exports.mongodumpPath = '${t.mongodump}';
 module.exports.mongorestorePath = '${t.mongorestore}';
