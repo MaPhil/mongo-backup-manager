@@ -21,6 +21,7 @@ const argv = minimist(process.argv.slice(2), {
     'dump': 'dmp',
     'help': 'h',
     'version': 'v',
+    'folder': 'f',
     'init': 'i'
   },
   unknown: (arg) => {
@@ -46,7 +47,7 @@ functions:
 \tdump list local 
 \t\t[--list local] [--db] <dbname>
 \tdump to remote storage:
-\t\t[--dump remote]  [--db] <db> [--host] <host> [--port] <port> [--user] <user> [--password] <password> [--schedule] <'* * * * *'>
+\t\t[--dump remote]  [--db] <db> [--host] <host> [--port] <port> [--folder] <folder> [--user] <user> [--password] <password> [--schedule] <'* * * * *'>
 \tdump to local:
 \t\t[--dump local] [--db] <db> [--schedule] <'* * * * *'>
 \trestore from remote:

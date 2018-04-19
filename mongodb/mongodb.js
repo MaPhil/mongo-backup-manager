@@ -16,7 +16,7 @@ class MongoManager {
 	constructor() { }
 
 	dumpToRemote(paramsObj) {
-		let { db, host, port, user, password, schedule } = paramsObj;
+		let { db, host, port, user, password, schedule, folder } = paramsObj;
 		if (schedule) {
 			if (!Utils.checkSchedule(schedule)) {
 				console.log('Bad param to sicro, for more info visit http://www.nncron.ru/help/EN/working/cron-format.htm');
@@ -30,16 +30,17 @@ class MongoManager {
 		
 			mongoDump(db, pathToTemp).then(() => {
 				let ftp = new Ftp(paramsObj);
-				let dupmPath = `${pathToTemp}`;
-				Utils.createDir(dupmPath).then(() => {
-					ftp.putToRemote(dupmPath, dbWithTimeDump, db).then(() => {
+				let dumpPath = `${pathToTemp}`;
+                if(folder && folder !='') dumpPath = folder+'/'+dupmPath;
+				Utils.createDir(dumpPath).then(() => {
+					ftp.putToRemote(dumpPath, dbWithTimeDump, db).then(() => {
 						if (schedule) {
 							let pathToMain = path.resolve(__dirname, '../index.js');
 							let sicroDescription = `${schedule} ${process.execPath} ${pathToMain} --dump remote --db ${db} --host ${host} --port ${port} --user ${user} --password ${password}`;
 							addSicro(db, sicroDescription);
 						}
 					}).catch((err) => {
-						// Utils.removeDir(dupmPath);
+						// Utils.removeDir(dumpPath);
 						console.log(err);
 					});
 				}).catch(err => {
