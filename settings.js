@@ -1,7 +1,7 @@
 const q = require('q');
 const fs = require('fs');
 const whereis = require("node-whereis");
-const path require('./path')
+const path = require('./path')
 
 module.exports.storePath = function () {
   var defer = q.defer();
