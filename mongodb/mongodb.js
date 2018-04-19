@@ -2,7 +2,7 @@ const sicro = require('sicro');
 const exec = require('child_process').exec;
 const path = require('path');
 const Utils = require('../utils');
-const whereis = require('whereis');
+const whereis = require('whereissync');
 
 
 
