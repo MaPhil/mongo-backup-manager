@@ -31,12 +31,11 @@ class MongoManager {
 			mongoDump(db, pathToTemp).then(() => {
 				let ftp = new Ftp(paramsObj);
 				let dumpPath = `${pathToTemp}`;
-                if(folder && folder !='') dumpPath = folder+'/'+dupmPath;
 				Utils.createDir(dumpPath).then(() => {
-					ftp.putToRemote(dumpPath, dbWithTimeDump, db).then(() => {
+					ftp.putToRemote(dumpPath, dbWithTimeDump, db, folder).then(() => {
 						if (schedule) {
 							let pathToMain = path.resolve(__dirname, '../index.js');
-							let sicroDescription = `${schedule} ${process.execPath} ${pathToMain} --dump remote --db ${db} --host ${host} --port ${port} --user ${user} --password ${password}`;
+							let sicroDescription = `${schedule} ${process.execPath} ${pathToMain} --dump remote --db ${db} --host ${host} --folder ${folder} --port ${port} --user ${user} --password ${password}`;
 							addSicro(db, sicroDescription);
 						}
 					}).catch((err) => {

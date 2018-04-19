@@ -71,13 +71,12 @@ class FtpClient {
 	}
 
 
-	putToRemote(dbDirPath, dbTimeName, dbName) {
+	putToRemote(dbDirPath, dbTimeName, dbName, folder) {
 	
 		return new Promise((res, rej) => {
 			let dumpGz = `${dbDirPath}.tar.gz`;
 			let dumpName = `${dbTimeName}.tar.gz`;
 			let connectParams = this.connectParams;
-
 			targz.compress({
 				src: dbDirPath,
 				dest: dumpGz
@@ -86,7 +85,9 @@ class FtpClient {
 					Utils.logErr(err);
 					console.log(err);
 				} else {
-					putFilesFtp(connectParams, dumpGz, dumpName, dbName).then(() => {
+                    console.log(dumpGz);
+                    console.log(dumpName);
+					putFilesFtp(connectParams, dumpGz, dumpName, dbName, folder).then(() => {
 						res();
 					}).catch((err) => {
 						rej(err);
@@ -184,13 +185,14 @@ function unpackRestore(db, pathToRestorArhive, pathToRestoredFile, resolve, reje
 
 
 
-function putFilesFtp(connectParams, dbDirPath, dumpName, dirName) {
+function putFilesFtp(connectParams, dbDirPath, dumpName, dirName, folder) {
 
 	return new Promise((res, rej) => {
 		let client = new Client();
 		client.on('ready', () => {
 			client.list((err, result) => {
 				if (err) throw err;
+                if(folder && folder !='') dirName = folder+'/'+dirName;
 				let ifDirExist = result.some(item => item.name === dirName);
 				if (ifDirExist) {
 					client.put(dbDirPath, `${dirName}/${dumpName}`, (err) => {
@@ -199,7 +201,7 @@ function putFilesFtp(connectParams, dbDirPath, dumpName, dirName) {
 						console.log('ok');
 					});
 				} else {
-					client.mkdir(dirName, (err) => {
+					client.mkdir(dirName,true, (err) => {
 						if (err) throw err;
 						client.put(dbDirPath, `${dirName}/${dumpName}`, (err) => {
 							if (err) throw err;
