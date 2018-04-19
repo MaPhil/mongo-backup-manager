@@ -11,6 +11,7 @@ module.exports.storePath = function () {
   
   
   fs.writeFile('path.js', `
+module.exports.first = false;
 module.exports.mongodumpPath = '${t.mongodump}';
 module.exports.mongorestorePath = '${t.mongorestore}';
 `, (err) => {  

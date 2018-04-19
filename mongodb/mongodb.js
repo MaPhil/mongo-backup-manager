@@ -205,6 +205,7 @@ function addSicro(task, description) {
 
 function mongoDump(db, dumpDir) {
 	return new Promise((res, rej) => {
+      if(pathSetting.first)pathSetting.mongodumpPath = 'mongodump';
 		exec(`${pathSetting.mongodumpPath} --db ${db} --out ${dumpDir}`, (err, stdout, stderr) => {
 			if (err) {
 				Utils.logErr(err);
@@ -221,6 +222,7 @@ function mongoDump(db, dumpDir) {
 
 
 function restoreDb(dbName, pathToDb) {
+  if(pathSetting.first)pathSetting.mongorestorePath = 'mongorestore';
 	exec(`${pathSetting.mongorestorePath} --db ${dbName} --drop ${pathToDb}`, (err, stdout, stderr) => {
 		if (err) {
 			Utils.logErr(err);
