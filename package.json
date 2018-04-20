@@ -1,6 +1,6 @@
 {
   "name": "mongo-backup-manager",
-  "version": "1.0.19",
+  "version": "1.0.20",
   "description": "with this package you can create a dump of you mongodb to a local place or to a remote ftp space",
   "main": "index.js",
   "scripts": {
