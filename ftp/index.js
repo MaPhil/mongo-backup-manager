@@ -83,10 +83,7 @@ class FtpClient {
 			}, function (err) {
 				if (err) {
 					Utils.logErr(err);
-					console.log(err);
 				} else {
-                    console.log(dumpGz);
-                    console.log(dumpName);
 					putFilesFtp(connectParams, dumpGz, dumpName, dbName, folder).then(() => {
 						res();
 					}).catch((err) => {
@@ -176,6 +173,7 @@ function unpackRestore(db, pathToRestorArhive, pathToRestoredFile, resolve, reje
 		if (err) {
 			reject(err);
 		} else {
+            console.log(pathToRestorArhive);
 			Utils.removeFile(pathToRestorArhive);
 			pathToRestoredFile = path.resolve(pathToRestoredFile, `./${db}`);
 			resolve(pathToRestoredFile);
@@ -215,12 +213,14 @@ function putFilesFtp(connectParams, dbDirPath, dumpName, dirName, folder) {
 		});
 		client.on('close', () => {
 			Utils.removeFile(dbDirPath);
+            if(folder && folder !='') dirName = dirName.substring(folder.length, dirName.length);
 			Utils.removeDir(path.resolve(__dirname, `../temp/${dirName}`));
 			res();
 		});
 		client.on('error', (err) => {
 			Utils.logErr(err);
 			Utils.removeFile(dbDirPath);
+            if(folder && folder !='') dirName = dirName.substring(folder.length, dirName.length);
 			Utils.removeDir(path.resolve(__dirname, `../temp/${dirName}`));
 			rej(err);
 		});

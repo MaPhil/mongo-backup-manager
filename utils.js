@@ -54,7 +54,7 @@ class Utils {
     }
 
     static removeDir(dirName) {
-        del(dirName,{force:true}).catch(err => {
+        del(dirName).catch(err => {
             console.log(err);
         });
     }
