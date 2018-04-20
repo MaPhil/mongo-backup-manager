@@ -3,9 +3,9 @@ const fs = require('fs');
 const whereis = require("node-whereis");
 const path = require('./path')
 
-module.exports.storePath = function () {
+module.exports.storePath = function (force) {
   var defer = q.defer();
-  if (path.first) {
+  if (path.first || force) {
     var t = {
       mongodump: whereis('mongodump'),
       mongorestore: whereis('mongorestore')

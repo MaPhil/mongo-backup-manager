@@ -30,7 +30,7 @@ class FtpClient {
 				if (result) {
 					dumps = result.map(item => item.name);
 				}
-				console.log(dumps);
+				//console.log(dumps);
 				client.end();
 			});
 		});
@@ -213,14 +213,14 @@ function putFilesFtp(connectParams, dbDirPath, dumpName, dirName, folder) {
 		});
 		client.on('close', () => {
 			Utils.removeFile(dbDirPath);
-            if(folder && folder !='') dirName = dirName.substring(folder.length, dirName.length);
+            if(folder && folder !='') dirName = dirName.substring(folder.length+1, dirName.length);
 			Utils.removeDir(path.resolve(__dirname, `../temp/${dirName}`));
 			res();
 		});
 		client.on('error', (err) => {
 			Utils.logErr(err);
 			Utils.removeFile(dbDirPath);
-            if(folder && folder !='') dirName = dirName.substring(folder.length, dirName.length);
+            if(folder && folder !='') dirName = dirName.substring(folder.length+1, dirName.length);
 			Utils.removeDir(path.resolve(__dirname, `../temp/${dirName}`));
 			rej(err);
 		});

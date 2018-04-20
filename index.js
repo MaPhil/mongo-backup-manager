@@ -49,7 +49,7 @@ functions:
 \tdump to remote storage:
 \t\t[--dump remote]  [--db] <db> [--host] <host> [--port] <port> [--folder] <folder> [--user] <user> [--password] <password> [--schedule] <'* * * * *'>
 \tdump to local:
-\t\t[--dump local] [--db] <db> [--schedule] <'* * * * *'>
+\t\t[--dump local] [--db] <db> [--folder] <folder> [--schedule] <'* * * * *'>
 \trestore from remote:
 \t\t[--restore remote]  [--db] <db> [--specific] <dumpName> [--host] <host> [--port] <port> [--user] <user> [--password] <password>
 \trestore all from remote
@@ -70,7 +70,7 @@ if (argv.h || argv.help) {
   console.log(help);
 }
 if (argv.i || argv.init) {
-  settings.storePath().then(function () {
+  settings.storePath(true).then(function () {
     console.log('stored path');
   })
 }
