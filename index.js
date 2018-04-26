@@ -43,21 +43,29 @@ generel option :
 
 functions:
 \tdump list remote:
-\t\t[--list remote] [--db] <dbname> [--host] <host> [--port] <port> [--user] <user> [--password] <password>
+\t\t[--list remote] [--db] <dbname> [--folder] <folder> [--host] <host> [--port] <port> [--user] <user> [--password] <password>
+
 \tdump list local 
 \t\t[--list local] [--db] <dbname>
+
 \tdump to remote storage:
-\t\t[--dump remote]  [--db] <db> [--host] <host> [--port] <port> [--folder] <folder> [--user] <user> [--password] <password> [--schedule] <'* * * * *'>
+\t\t[--dump remote]  [--db] <db or nothing if all>  [--host] <host> [--port] <port> [--folder] <folder> [--user] <user> [--password] <password> [--schedule] <'* * * * *'>
+
 \tdump to local:
-\t\t[--dump local] [--db] <db> [--folder] <folder> [--schedule] <'* * * * *'>
+\t\t[--dump local] [--db] <db or nothing if all> [--folder] <folder> [--schedule] <'* * * * *'>
+
 \trestore from remote:
 \t\t[--restore remote]  [--db] <db> [--specific] <dumpName> [--host] <host> [--port] <port> [--user] <user> [--password] <password>
+
 \trestore all from remote
 \t\t[--restore remote] [--dbs all] [--host] <host> [--port] <port> [--user] <user> [--password] <password>
+
 \trestore from local:
-\t\t[--restore local]  [--db] <db> [--dbs all] [--specific] <dumpName>
+\t\t[--restore local]  [--db] <db> [--folder] <folder> [--dbs all] [--specific] <dumpName>
+
 \tremove db:
 \t\t[--remove]  <dbname>
+
 \tstatus:
 \t\t[--status]
 `;
@@ -123,17 +131,6 @@ if (argv.restore && argv.restore === 'local') {
       mongoManeger.restoreFromLocal(argv);
     }
   })
-}
-
-if (argv.add && argv.add !== '') {
-  let dbName = argv.add;
-  let schedule = null;
-  if (argv.schedule && argv.schedule !== '') {
-    schedule = argv.schedule;
-  }
-
-  mongoManeger.addDb(dbName, schedule);
-
 }
 
 if (argv.remove && argv.remove !== '') {

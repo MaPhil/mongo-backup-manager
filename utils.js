@@ -39,6 +39,7 @@ class Utils {
   }
 
   static createDir(dirName) {
+    console.log('create dir ',dirName);
     return new Promise((res, rej) => {
       fs.exists(dirName, (result) => {
 

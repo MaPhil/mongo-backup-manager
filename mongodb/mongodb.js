@@ -9,15 +9,19 @@ const pathSetting = require('../path');
 const Ftp = require('../ftp/index.js');
 
 
-// const NODE_ENV = process.env.NODE_ENV = 'development';
-// const NODE_ENV = process.env.NODE_ENV = 'production';
 
 class MongoManager {
   constructor() {}
 
   dumpToRemote(paramsObj) {
     let {
-      db, host, port, user, password, schedule, folder
+      db,
+      host,
+      port,
+      user,
+      password,
+      schedule,
+      folder
     } = paramsObj;
     if (schedule) {
       if (!Utils.checkSchedule(schedule)) {
@@ -25,8 +29,16 @@ class MongoManager {
         return;
       }
     }
-    let dbWithTimeDump = db + Utils.formDate();
-    let pathToTemp = path.resolve(__dirname, `../temp/${db}`);
+    let dbWithTimeDump;
+    let pathToTemp;
+
+    if (folder && folder != '') {
+      pathToTemp = path.resolve(__dirname, `../temp/${folder}`)
+      dbWithTimeDump = folder + Utils.formDate();
+    } else {
+      pathToTemp = path.resolve(__dirname, `../temp/${db}`);
+      dbWithTimeDump = db + Utils.formDate();
+    }
 
     Utils.createDir(pathToTemp).then(() => {
 
@@ -37,11 +49,18 @@ class MongoManager {
           ftp.putToRemote(dumpPath, dbWithTimeDump, db, folder).then(() => {
             if (schedule) {
               let pathToMain = path.resolve(__dirname, '../index.js');
-              let sicroDescription = `${schedule} ${process.execPath} ${pathToMain} --dump remote --db ${db} --host ${host} --folder ${folder} --port ${port} --user ${user} --password ${password}`;
-              addSicro(db, sicroDescription);
+              let sicroDescription;
+
+              if (folder && folder != '') {
+                sicroDescription = `${schedule} ${process.execPath} ${pathToMain} --dump remote --folder ${folder} --host ${host}  --port ${port} --user ${user} --password ${password}`;
+
+                addSicro(folder, sicroDescription);
+              } else {
+                sicroDescription = `${schedule} ${process.execPath} ${pathToMain} --dump remote --db ${db} --host ${host}  --port ${port} --user ${user} --password ${password}`;
+                addSicro(db, sicroDescription);
+              }
             }
           }).catch((err) => {
-            // Utils.removeDir(dumpPath);
             console.log(err);
           });
         }).catch(err => {
@@ -54,8 +73,14 @@ class MongoManager {
   }
 
   getRemoteListWithDump(paramsObj) {
+    let {db, folder} = paramsObj;
     let ftp = new Ftp(paramsObj);
-    let dumpDir = paramsObj.db || '';
+    let dumpDir ='';
+    if(folder && folder != ''){
+      dumpDir = folder;
+    } else if (db && db != ''){
+      dumpDir = db;
+    }
     ftp.getDumpList(dumpDir);
   }
 
@@ -77,7 +102,9 @@ class MongoManager {
 
   dumpToLocal(paramsObj) {
     let {
-      db, schedule,folder
+      db,
+      schedule,
+      folder
     } = paramsObj;
     if (schedule) {
       if (!Utils.checkSchedule(schedule)) {
@@ -85,18 +112,30 @@ class MongoManager {
         return;
       }
     }
-    let dumpTimeDir = db + Utils.formDate(db);
+    let dumpTimeDir = db + Utils.formDate();
     let dumpDir;
-    if(folder && folder != '') dumpDir = folder;
-    else dumpDir = path.resolve(__dirname, `../dump/${db}/${dumpTimeDir}`);
+    if (folder && folder != '') {
+      let folderTimeDir = folder + Utils.formDate();
+      dumpDir = path.resolve(__dirname, `../dump/${folder}/${folderTimeDir}`);
+    } else if (db && db != '') {
+      dumpDir = path.resolve(__dirname, `../dump/${db}/${dumpTimeDir}`)
+    };
+
     Utils.createDir(dumpDir).then((dumpDir) => {
 
       mongoDump(db, dumpDir).then(() => {
         if (schedule) {
 
           let pathToMain = path.resolve(__dirname, '../index.js');
-          let sicroDescription = `${schedule} ${process.execPath} ${pathToMain} --dump local --db ${db}`;
-          addSicro(db, sicroDescription);
+          let sicroDescription;
+          if (folder && folder != '') {
+            sicroDescription = `${schedule} ${process.execPath} ${pathToMain} --dump local --folder ${folder}`;
+            addSicro(folder, sicroDescription);
+
+          } else {
+            let sicroDescription = `${schedule} ${process.execPath} ${pathToMain} --dump local --db ${db}`;
+            addSicro(db, sicroDescription);
+          }
         }
       }).catch((err) => {
         Utils.logErr(err);
@@ -108,13 +147,26 @@ class MongoManager {
   }
 
   restoreDbFromRemote(paramsObj) {
+    console.log('paramsObj ', paramsObj);
     let {
-      db
+      db,
+      folder
     } = paramsObj;
+    let dump;
+    if (folder && folder != '') {
+      dump = folder;
+    } else {
+      dump = db;
+    }
     let ftp = new Ftp(paramsObj);
-    ftp.getLastDumpRemote(db).then((result) => {
-      ftp.getFromRemote(db, result).then((path) => {
-        restoreDb(db, path);
+    ftp.getLastDumpRemote(dump).then((result) => {
+      ftp.getFromRemote(dump, result).then((_path) => {
+        if (folder && folder != '') {
+          let pathToRestoreDir = path.resolve(__dirname, '../restore');
+          restoreDb('', pathToRestoreDir);
+        } else {
+          restoreDb(dump, _path);
+        }
       }).catch((err) => {
         Utils.logErr(err);
       });
@@ -127,13 +179,30 @@ class MongoManager {
   restoreSpecificFromRemote(paramsObj) {
     let ftp = new Ftp(paramsObj);
     let {
-      db, specific
+      db,
+      specific,
+      folder
     } = paramsObj;
-    ftp.getFromRemote(db, specific).then((path) => {
-      restoreDb(db, path);
+    let dump;
+    if(folder && folder != ''){
+      dump = folder;
+    } else {
+      dump = db;
+    }
+    ftp.getFromRemote(dump, specific).then((_path) => {
+      if(folder && folder != ''){
+        let pathToRestore = path.resolve(__dirname, '../restore');;
+        restoreDb('', pathToRestore);
+      } else {
+        restoreDb(dump, _path);
+      }
     }).catch(err => Utils.logErr(err));
   }
 
+  /**
+   * TODO remove
+   * @param {} paramsObj 
+   */
   restoreAllFromRemote(paramsObj) {
     let ftp = new Ftp(paramsObj);
     ftp.returnAllDumpsRemote().then((result) => {
@@ -155,15 +224,26 @@ class MongoManager {
 
   restoreFromLocal(paramsObj) {
     let {
-      db
+      db,
+      folder
     } = paramsObj;
-    console.log(db);
-    let pathToDir = path.resolve(__dirname, `../dump/${db}`);
+
+    let pathToDir;
+    if (folder && folder != '') {
+      pathToDir = path.resolve(__dirname, `../dump/${folder}`)
+    } else if (db && db != '') {
+      pathToDir = path.resolve(__dirname, `../dump/${db}`);
+    }
+
     console.log(pathToDir);
     Utils.dirList(pathToDir).then((result) => {
       let pathToLastFile = Utils.lastedFile(result);
-      let pathToDump = path.resolve(__dirname, `../dump/${db}/${pathToLastFile}/${db}`);
-      console.log('path to dump ', pathToDump);
+      let pathToDump;
+      if (folder && folder != '') {
+        pathToDump = path.resolve(__dirname, `../dump/${folder}/${pathToLastFile}`);
+      } else {
+        pathToDump = path.resolve(__dirname, `../dump/${db}/${pathToLastFile}/${db}`);
+      }
       restoreDb(db, pathToDump);
     }).catch(err => Utils.logErr(err));
 
@@ -188,10 +268,18 @@ class MongoManager {
 
   restoreSpecificDumpFromLocal(paramsObj) {
     let {
-      db, specific
+      db,
+      specific,
+      folder
     } = paramsObj;
-    let pathToDump = path.resolve(__dirname, `../dump/${db}/${specific}/${db}`);
-    restoreDb(db, pathToDump);
+    let pathToDump;
+    if (folder && folder != '') {
+      pathToDump = path.resolve(__dirname, `../dump/${folder}/${specific}`)
+      restoreDb('', pathToDump)
+    } else {
+      pathToDump = path.resolve(__dirname, `../dump/${db}/${specific}/${db}`);
+      restoreDb(db, pathToDump);
+    }
   }
 
 
@@ -222,13 +310,12 @@ function addSicro(task, description) {
 function mongoDump(db, dumpDir) {
   return new Promise((res, rej) => {
     if (pathSetting.first) pathSetting.mongodumpPath = 'mongodump';
-    if(!db || db == '') db = '';
+    if (!db || db == '') db = '';
     else db = `--db ${db} `;
     exec(`${pathSetting.mongodumpPath} ${db}--out ${dumpDir}`, (err, stdout, stderr) => {
       if (err) {
         Utils.logErr(err);
         rej(err);
-        // throw err;
       }
       Utils.logOut(stdout);
       Utils.logOut(stderr);
@@ -240,17 +327,36 @@ function mongoDump(db, dumpDir) {
 
 
 function restoreDb(dbName, pathToDb) {
+
   if (pathSetting.first) pathSetting.mongorestorePath = 'mongorestore';
-  exec(`${pathSetting.mongorestorePath} --db ${dbName} --drop ${pathToDb}`, (err, stdout, stderr) => {
-    if (err) {
-      Utils.logErr(err);
-      throw err
-    };
-    Utils.logErr(stderr);
-    Utils.logOut(stdout);
-    let pathToDir = path.resolve(__dirname, `../restore/${dbName}`);
-    Utils.removeDir(pathToDir);
-  });
+  if (dbName && dbName != '') {
+    exec(`${pathSetting.mongorestorePath} --db ${dbName} --drop ${pathToDb}`, (err, stdout, stderr) => {
+      if (err) {
+        Utils.logErr(err);
+        throw err
+      };
+      Utils.logErr(stderr);
+      Utils.logOut(stdout);
+      let pathToDir = path.resolve(__dirname, `../restore/${dbName}`);
+      Utils.removeDir(pathToDir);
+    });
+  } else {
+    exec(`${pathSetting.mongorestorePath}  ${pathToDb}`, (err, stdout, stderr) => {
+      if (err) {
+        console.log('error here');;
+        Utils.logErr(err);
+        throw err
+      };
+      Utils.logErr(stderr);
+      Utils.logOut(stdout);
+      let pathToDir = path.resolve(__dirname, `../restore`);
+      Utils.dirList(pathToDir).then((result) => {
+        result.forEach((item) => {
+          Utils.removeDir(pathToDir + `/${item}`);
+        })
+      });
+    });
+  }
 }
 
 
